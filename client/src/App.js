@@ -6,7 +6,7 @@ import InfoWindow from './components/InfoWindow';
 
 const App = () => {
   // create an info window
-  const createInfoWindow = (e, map) => {
+  const createInfoWindow = (e, map, content) => {
     const infoWindow = new window.google.maps.InfoWindow({
       content:
         "<div id='infoWindow' />" /* the Api only allows stringified html snippets.
@@ -20,10 +20,14 @@ const App = () => {
     // let us know when the dom is ready
     infoWindow.addListener('domready', e => {
       // render the info window
-      render(<InfoWindow />, document.getElementById('infoWindow'));
+      render(
+        <InfoWindow content={content} />,
+        document.getElementById('infoWindow')
+      );
     });
     infoWindow.open(map);
   };
+
   return (
     <div className="App">
       <Map
@@ -36,7 +40,25 @@ const App = () => {
           }
         }}
         onMapLoad={map => {
+          // Add markers
+          const addMarker = (e, map, title) => {
+            // create a new instance
+            const marker = new window.google.maps.Marker({
+              /* get coordinates from the click event */
+              position: {
+                lat: e.latLng.lat(),
+                lng: e.latLng.lng()
+              },
+              map: map,
+              title: title
+            });
+            marker.addListener('click', e => {
+              createInfoWindow(e, map, marker.title);
+            });
+          };
           // the 'onMapLoad' prop, we can create Markers, InfoWindow, Polygons, etc
+          /* loop over marker array here */
+          /* default marker */
           var marker = new window.google.maps.Marker({
             position: {
               lat: -17.852,
@@ -48,6 +70,10 @@ const App = () => {
 
           marker.addListener('click', e => {
             createInfoWindow(e, map);
+          });
+
+          map.addListener('click', e => {
+            addMarker(e, map, `${e.latLng.lat()}, ${e.latLng.lng()}`);
           });
         }}
       />
